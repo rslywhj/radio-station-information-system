@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.PermissionMapper">
+  <resultMap id="BaseResultMap" type="com.tjetc.entity.Permission">
+    <id column="permission_id" jdbcType="BIGINT" property="permissionId" />
+    <result column="permission_name" jdbcType="VARCHAR" property="permissionName" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from permission
+    where permission_id = #{permissionId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tjetc.entity.Permission">
+    insert into permission (permission_id, permission_name)
+    values (#{permissionId,jdbcType=BIGINT}, #{permissionName,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.Permission">
+    update permission
+    set permission_name = #{permissionName,jdbcType=VARCHAR}
+    where permission_id = #{permissionId,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select permission_id, permission_name
+    from permission
+    where permission_id = #{permissionId,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select permission_id, permission_name
+    from permission
+  </select>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.FeedbackMapper">
+  <resultMap id="BaseResultMap" type="com.tjetc.entity.Feedback">
+    <id column="feedback_id" jdbcType="BIGINT" property="feedbackId" />
+    <result column="feedback_date" jdbcType="TIMESTAMP" property="feedbackDate" />
+    <result column="feedback_username" jdbcType="VARCHAR" property="feedbackUsername" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from feedback
+    where feedback_id = #{feedbackId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tjetc.entity.Feedback">
+    insert into feedback (feedback_date, feedback_username,
+      content, status)
+    values (#{feedbackDate,jdbcType=TIMESTAMP}, #{feedbackUsername,jdbcType=VARCHAR},
+      #{content,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.Feedback">
+    update feedback
+    set feedback_date = #{feedbackDate,jdbcType=TIMESTAMP},
+      feedback_username = #{feedbackUsername,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR}
+    where feedback_id = #{feedbackId,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select feedback_id, feedback_date, feedback_username, content, status
+    from feedback
+    where feedback_id = #{feedbackId,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select feedback_id, feedback_date, feedback_username, content, status
+    from feedback
+  </select>
+  <!--查看需要处理的反馈-->
+  <select id="selectByStatus" resultMap="BaseResultMap">
+    select feedback_id, feedback_date, feedback_username, content, status
+    from feedback where status='未处理'
+  </select>
+  <!--处理反馈-->
+  <update id="updateStatus" parameterType="long">
+    update feedback set `status`='已解决' where feedback_id=#{feedback_id}
+  </update>
+</mapper>

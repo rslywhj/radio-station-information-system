@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.ScheduleMapper">
+    <resultMap id="BaseResultMap" type="com.tjetc.entity.Schedule">
+        <result column="date" jdbcType="TIMESTAMP" property="date"/>
+        <result column="edit" jdbcType="VARCHAR" property="edit"/>
+        <result column="broadcast" jdbcType="VARCHAR" property="broadcast"/>
+        <result column="group" jdbcType="VARCHAR" property="group"/>
+        <result column="article" jdbcType="VARCHAR" property="article"/>
+    </resultMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from schedule
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="com.tjetc.entity.Schedule" useGeneratedKeys="true" keyProperty="id">
+    insert into schedule ( `date`, edit,
+      broadcast, `group`
+      )
+    values ( #{date,jdbcType=TIMESTAMP}, #{edit,jdbcType=VARCHAR},
+      #{broadcast,jdbcType=VARCHAR}, #{group,jdbcType=VARCHAR}
+      )
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.Schedule">
+    update schedule
+    set date = #{date,jdbcType=TIMESTAMP},
+      edit = #{edit,jdbcType=VARCHAR},
+      broadcast = #{broadcast,jdbcType=VARCHAR},
+      `group` = #{group,jdbcType=VARCHAR},
+      article = #{article,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+    <select id="selectByB" parameterType="String" resultType="String">
+    SELECT s.article FROM `schedule` s where s.date=#{date}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select id, date, edit, broadcast, `group`, article
+    from schedule
+  </select>
+
+    <select id="selectBYEdit" parameterType="java.lang.String" resultMap="BaseResultMap">
+select  id,date,edit,broadcast,`group`,article from `schedule` where edit=(
+select member_name from member where username=#{username,jdbcType=VARCHAR})  or broadcast=(
+select member_name from member where username=#{username,jdbcType=VARCHAR})
+</select>
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.CourseMapper">
+  <resultMap id="BaseResultMap" type="com.tjetc.entity.Course">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="course_name" jdbcType="VARCHAR" property="courseName" />
+    <result column="course_hour" jdbcType="INTEGER" property="courseHour" />
+    <result column="course_credit" jdbcType="INTEGER" property="courseCredit" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from course
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tjetc.entity.Course">
+    insert into course (id, course_name, course_hour, 
+      course_credit)
+    values (#{id,jdbcType=BIGINT}, #{courseName,jdbcType=VARCHAR}, #{courseHour,jdbcType=INTEGER}, 
+      #{courseCredit,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.Course">
+    update course
+    set course_name = #{courseName,jdbcType=VARCHAR},
+      course_hour = #{courseHour,jdbcType=INTEGER},
+      course_credit = #{courseCredit,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, course_name, course_hour, course_credit
+    from course
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, course_name, course_hour, course_credit
+    from course
+  </select>
+</mapper>

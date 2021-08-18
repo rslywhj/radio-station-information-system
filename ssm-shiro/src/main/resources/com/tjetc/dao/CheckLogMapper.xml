@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.CheckLogMapper">
+  <resultMap id="BaseResultMap" type="com.tjetc.entity.CheckLog">
+    <id column="check_id" jdbcType="BIGINT" property="checkId" />
+    <result column="check_datetime" jdbcType="TIMESTAMP" property="checkDatetime" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+  </resultMap>
+  <resultMap id="BaseResultMap1" type="com.tjetc.entity.CheckLog">
+    <result column="check_datetime" jdbcType="TIMESTAMP" property="checkDatetime" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from check_log
+    where check_id = #{checkId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tjetc.entity.CheckLog">
+    insert into check_log (check_id, check_datetime, username
+      )
+    values (#{checkId,jdbcType=BIGINT}, #{checkDatetime,jdbcType=TIMESTAMP}, #{username,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.CheckLog">
+    update check_log
+    set check_datetime = #{checkDatetime,jdbcType=TIMESTAMP},
+      username = #{username,jdbcType=VARCHAR}
+    where check_id = #{checkId,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select check_id, check_datetime, username
+    from check_log
+    where check_id = #{checkId,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select check_id, check_datetime, username
+    from check_log
+  </select>
+
+  <!--查询今天是否打过卡-->
+  <select id="selectByUsername" resultType="Date" parameterType="String">
+    select check_datetime from check_log where username=#{username}
+  </select>
+
+  <!--查看自己的打卡记录-->
+  <select id="selectPersonCheck" resultMap="BaseResultMap1" parameterType="String">
+    select check_datetime,username from check_log where username=#{username}
+  </select>
+
+  <!--组长查看自己组的今天的打卡情况-->
+  <select id="selectGroup" resultMap="BaseResultMap1" parameterType="String">
+    select check_datetime,username from check_log where username=any(
+select member_name from member where member_id=any(
+select member_id from member_group where group_id=(
+select group_id from member_group where member_id=(
+select member_id from member where member_name=#{username}))))
+  </select>
+
+  <!--台长查看全台所有人打卡情况-->
+  <select id="selectAllGroup" resultMap="BaseResultMap1" parameterType="String">
+   select check_datetime,username from check_log where check_datetime like CONCAT(#{check_datetime},'%')
+  </select>
+</mapper>

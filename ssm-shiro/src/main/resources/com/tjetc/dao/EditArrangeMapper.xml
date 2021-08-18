@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.EditArrangeMapper">
+  <resultMap id="BaseResultMap" type="com.tjetc.entity.EditArrange">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="arrange_date" jdbcType="DATE" property="arrangeDate" />
+    <result column="author" jdbcType="VARCHAR" property="author" />
+  </resultMap>
+  <delete id="delete" parameterType="java.lang.Long">
+    delete from edit_arrange
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.tjetc.entity.EditArrange" useGeneratedKeys="true" keyProperty="id">
+    insert into edit_arrange (arrange_date, author
+      )
+    values (#{arrangeDate,jdbcType=DATE}, #{author,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByDate" parameterType="com.tjetc.entity.EditArrange">
+    update edit_arrange
+    set author = #{author,jdbcType=VARCHAR}
+    where arrange_date = #{arrangeDate,jdbcType=DATE}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, arrange_date, author
+    from edit_arrange
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, arrange_date, author
+    from edit_arrange
+  </select>
+
+  <select id="selectWXEdit" parameterType="java.lang.String" resultMap="BaseResultMap">
+select arrange_date,author from edit_arrange where author=(
+select member_name from member where username=#{username,jdbcType=VARCHAR})
+</select>
+
+
+
+
+
+
+</mapper>

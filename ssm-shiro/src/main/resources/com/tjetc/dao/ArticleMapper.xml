@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tjetc.dao.ArticleMapper">
+    <resultMap id="BaseResultMap" type="com.tjetc.entity.Article">
+        <id column="article_id" jdbcType="BIGINT" property="articleId"/>
+        <result column="article_title" jdbcType="VARCHAR" property="articleTitle"/>
+        <result column="path" jdbcType="VARCHAR" property="path"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="author" jdbcType="VARCHAR" property="author"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+    </resultMap>
+
+    <parameterMap id="ParameterMap1" type="com.tjetc.entity.Article">
+        <parameter property="status" jdbcType="VARCHAR" javaType="String"/>
+        <parameter property="articleTitle" jdbcType="VARCHAR" javaType="String"/>
+    </parameterMap>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from article
+    where article_id = #{articleId,jdbcType=BIGINT}
+  </delete>
+    <insert id="insert" parameterType="com.tjetc.entity.Article" useGeneratedKeys="true" keyProperty="articleId">
+    insert into article (article_title, path,
+      create_time, update_time, author,
+      status)
+    values (#{articleTitle,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{author,jdbcType=VARCHAR},
+      #{status,jdbcType=VARCHAR})
+  </insert>
+    <update id="updateByPrimaryKey" parameterType="com.tjetc.entity.Article">
+    update article
+    set article_title = #{articleTitle,jdbcType=VARCHAR},
+      path = #{path,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      author = #{author,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR}
+    where article_id = #{articleId,jdbcType=BIGINT}
+  </update>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select article_id, article_title, path, create_time, update_time, author, status
+    from article
+    where article_id = #{articleId,jdbcType=BIGINT}
+  </select>
+    <select id="selectAll" resultMap="BaseResultMap">
+    select article_id,article_title, create_time, author, status
+    from article where status='未使用'
+  </select>
+    <select id="selectByArticle_title" resultType="Long" parameterType="String">
+    select article_id from article where article_title=#{article_title}
+  </select>
+    <!--组长查看稿件-->
+    <select id="selectByUsername" resultMap="BaseResultMap" parameterType="String">
+    select * from article where status='待审阅' and author=any(
+    select member_name from member where member_id=any(
+    select member_id from member_group where group_id=(
+    select group_id from member_group where member_id=(select member_id from member where username=#{username}))))
+  </select>
+    <!--编辑查看自己的稿件-->
+    <select id="selectByEdit" resultMap="BaseResultMap" parameterType="String">
+    select * from article where author=any(
+    select member_name from member where username='yingyuj')
+    </select>
+    <!--栏目总编查看全台待复审的稿子-->
+    <select id="selectAllF" resultMap="BaseResultMap">
+    select * from article where status='待复审'
+  </select>
+
+    <!--栏目总编查看全台的稿子-->
+    <select id="selectAllT" resultMap="BaseResultMap">
+    select * from article
+  </select>
+
+    <!--组长通过审阅-->
+    <update id="updateStatusZ" parameterType="String">
+    update article set status='待复审' where article_title=#{articleTitle}
+  </update>
+
+    <!--栏目总编通过审阅-->
+    <update id="updateStatusT" parameterType="String">
+    update article set status='未使用' where article_title=#{articleTitle}
+  </update>
+
+    <!--栏目总编未通过审阅-->
+    <update id="noUpdateStatusZ" parameterType="String">
+    update article set status=#{status} where article_title=#{articleTitle}
+  </update>
+
+    <!--台长未通过审阅-->
+    <update id="noUpdateStatusT" parameterType="String">
+    update article set status=#{status} where article_title=#{articleTitle}
+  </update>
+
+    <!--组长查看所有稿件-->
+    <select id="selectAllByGroup" parameterType="Long" resultMap="BaseResultMap">
+        SELECT a.article_title,a.create_time,a.update_time,a.author,a.`status` FROM article a WHERE author = ANY (
+        SELECT m.member_name FROM member m WHERE member_id = ANY (
+        SELECT mg.member_id FROM member_group mg WHERE group_id = (
+        SELECT mg.group_id FROM member_group mg WHERE member_id = #{memberId})))
+    </select>
+
+  <!--更改稿子状态-->
+  <update id="updateStatus" parameterType="String">
+    update article set status='已使用' where article_title=#{article_title}
+  </update>
+</mapper>

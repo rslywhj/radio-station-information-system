@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--配置 CacheManager -->
+    <!--使用内存作为缓存-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager"></bean>
+
+    <!--配置realm 自定义的Realm-->
+    <!--
+    	Shiro 从从Realm获取安全数据（如用户、角色、权限），就是说SecurityManager要验证用户身份，
+    	那么它需要从Realm获取相应的用户进行比较以确定用户身份是否合法；
+		也需要从Realm得到用户相应的角色/权限进行验证用户是否能进行操作；
+		可以把Realm看成DataSource ， 即安全数据源
+	-->
+    <bean id="shiroDbRealm" class="com.tjetc.shiro.MemberRealm">
+        <!--缓存管理-->
+        <property name="cacheManager" ref="cacheManager"></property>
+        <!-- 开启认证缓存-->
+        <property name="authenticationCachingEnabled" value="true"></property>
+        <!--开启授权缓存-->
+        <property name="authorizationCachingEnabled" value="true"></property>
+    </bean>
+
+    <!--rememberMe cookie-->
+    <bean id="rememberMe" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!--cookie的名称-->
+        <constructor-arg value="rememberMe"></constructor-arg>
+        <!--设置HttpOnly=true的cookie不能被js获取到-->
+        <property name="httpOnly" value="true"></property>
+        <!--cookie 单位秒 的最大失效时间 30天-->
+        <property name="maxAge" value="2592000"></property>
+    </bean>
+    <!-- Remember me管理器 -->
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <!--用来设置加密的Key,参数类型byte[],字节数组长度要求16-->
+        <!--#{}比${}更强大的spel表表达式，T表示类型，下面的value的spel表示 调用Base64.decode方法，把key字符串转成16位的byte[]数组-->
+        <property name="cipherKey"
+                  value="#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}"></property>
+        <!--cookie属性 引用定义的rememberMe-->
+        <property name="cookie" ref="rememberMe"></property>
+    </bean>
+
+
+    <!--定义sessionId对应的的cookie-->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!--设置cookie的名称-->
+        <constructor-arg value="x-auth-token"></constructor-arg>
+        <!--httpOnly=false表示前端js代码可以获取cookie-->
+        <property name="httpOnly" value="false"></property>
+    </bean>
+    <!-- shiro结合Session会话管理器 -->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!--<bean id="sessionManager" class="com.tjetc.shiro.AccessTokenSessionManager">-->
+        <!-- session的失效时长，单位毫秒    1小时: 3600000, -->
+        <!-- 设置全局会话超时时间，默认30分钟，即如果30分钟内没有访问会话将过期 1800000 -->
+        <property name="globalSessionTimeout" value="1800000"/>
+        <!-- 删除失效的session -->
+        <property name="deleteInvalidSessions" value="true"/>
+        <!-- 是否开启会话验证器，默认是开启的 -->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <property name="sessionIdCookie" ref="sessionIdCookie"></property>
+    </bean>
+
+    <!--配置securityManager安全管理器 -->
+    <!--SecurityManager：安全管理器；即所有与安全有关的操作都会与SecurityManager交互；
+        且它管理着所有Subject；可以看出它是Shiro 的核心，它负责与后边介绍的其他组件进行交互
+     -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--配置自定义Realm-->
+        <property name="realm" ref="shiroDbRealm"/>
+        <!--记住我-->
+        <property name="rememberMeManager" ref="rememberMeManager"/>
+        <!-- 配置sessionManager，提供session管理 -->
+        <property name="sessionManager" ref="sessionManager"></property>
+    </bean>
+
+    <!-- 自定义扩展的filter实例（认证） -->
+    <bean id="customFormAuthenticationFilter" class="com.tjetc.shiro.filter.CustomFormAuthenticationFilter"/>
+    <!-- Shiro Filter id值和web.xml文件配置的过滤器名称相同 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <!-- Shiro过滤器链 -->
+        <property name="filters">
+            <map>
+                <!--配置自定义的customFormAuthenticationFilter（返回json）-->
+                <entry key="authc" value-ref="customFormAuthenticationFilter"/>
+            </map>
+        </property>
+
+        <!--配置登录、注册、静态资源匿名访问，其他所有的访问需要登录后才能访问-->
+        <property name="filterChainDefinitions">
+            <value>
+                <!--anon 表示匿名访问-->
+                /member/login = anon
+                /member/register = anon
+                /static/**=anon
+                <!--authc 登录才能访问-->
+                /** = authc
+            </value>
+        </property>
+    </bean>
+</beans>

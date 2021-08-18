@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       https://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop
+       https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--配置扫描@Service @Repositry @Component注解类,spring生成bean并管理起来-->
+    <context:component-scan base-package="com.tjetc">
+        <!--排除加有@Controller的类-->
+        <!--exclude-filter 排除过滤器-->
+        <!--type表示类型 annotation 表示注解-->
+        <!--expression表达式 例如对应注解的类 例如@Controller的全限定名-->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--配置数据源和事务-->
+    <!--加载配置文件-->
+    <context:property-placeholder location="classpath*:*.properties"></context:property-placeholder>
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+        <property name="driverClassName" value="${jdbc.driverName}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    <!--配置事务管理器-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--配置注解事务-->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="noUpdate*" propagation="REQUIRED"/>
+            <tx:method name="del*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+    <!--aop配置-->
+    <aop:config>
+        <!--配置切点-->
+        <aop:pointcut id="tranCut" expression="execution(* com.tjetc.service..*.*(..))"/>
+        <!--配置增强器-->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="tranCut"></aop:advisor>
+    </aop:config>
+
+    <!--配置mybatis和spring的整合-->
+    <!--sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--配置mybatis.xml-->
+        <property name="configLocation" value="classpath:mybatis.xml"></property>
+        <!--配置数据源-->
+        <property name="dataSource" ref="dataSource"></property>
+        <!--配置mapper映射文件-->
+        <property name="mapperLocations" value="classpath:com/tjetc/dao/*.xml"></property>
+    </bean>
+    <!--扫描MapperScannerConfigurer-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <!--配置mapper接口包的位置，扫描配置包路径下 所有Mapper接口 生成的代理bean交给spring管理-->
+        <property name="basePackage" value="com.tjetc.dao"></property>
+    </bean>
+
+    <!--引入shiro配置-->
+    <import resource="applicationContext-shiro.xml"></import>
+</beans>
